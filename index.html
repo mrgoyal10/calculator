@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MR. Goyal Tools — Calculator</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;
+background:linear-gradient(160deg,#0a0f0d 0%,#0d1a14 30%,#0a1210 60%,#080e0b 100%);
+font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;padding:20px;overflow:hidden}
+body::before{content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%;
+background:radial-gradient(circle at 30% 20%,rgba(0,230,118,0.04),transparent 50%),
+radial-gradient(circle at 70% 80%,rgba(0,200,83,0.03),transparent 50%);
+pointer-events:none}
+
+.brand{text-align:center;margin-bottom:28px;position:relative;z-index:1}
+.brand h1{font-size:1.6rem;font-weight:800;letter-spacing:1px;color:#e8f5e9;
+text-shadow:0 0 30px rgba(0,230,118,0.15)}
+.brand h1 span{color:#00e676}
+.brand p{font-size:0.78rem;color:#5a7d6a;margin-top:4px;letter-spacing:3px;text-transform:uppercase}
+
+.calc{width:340px;background:rgba(18,30,24,0.85);backdrop-filter:blur(30px);
+border:1px solid rgba(0,230,118,0.1);border-radius:28px;padding:24px;
+box-shadow:0 30px 80px rgba(0,0,0,0.5),0 0 0 1px rgba(0,230,118,0.05) inset;
+position:relative;z-index:1}
+
+.display{background:rgba(0,0,0,0.35);border:1px solid rgba(0,230,118,0.08);
+border-radius:18px;padding:20px 22px;margin-bottom:20px;min-height:100px;
+display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-end;overflow:hidden}
+.display .expr{font-size:0.85rem;color:#4a6d5a;min-height:20px;word-break:break-all;margin-bottom:6px;width:100%;text-align:right}
+.display .val{font-size:2.6rem;font-weight:700;color:#e8f5e9;word-break:break-all;
+width:100%;text-align:right;line-height:1.1;transition:font-size 0.2s}
+.display .val.small{font-size:1.8rem}
+
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.btn{height:62px;border:none;border-radius:16px;font-size:1.25rem;cursor:pointer;
+font-weight:600;transition:all 0.12s;font-family:inherit;position:relative;overflow:hidden}
+.btn::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at center,rgba(255,255,255,0.15),transparent 70%);
+opacity:0;transition:opacity 0.2s}
+.btn:active::after{opacity:1}
+.btn:active{transform:scale(0.92)}
+
+.num{background:rgba(255,255,255,0.06);color:#e8f5e9}
+.num:hover{background:rgba(255,255,255,0.12)}
+.op{background:rgba(0,230,118,0.12);color:#00e676}
+.op:hover{background:rgba(0,230,118,0.22)}
+.eq{background:linear-gradient(135deg,#00e676,#00c853);color:#0a0f0d;font-weight:800;
+box-shadow:0 4px 20px rgba(0,230,118,0.3)}
+.eq:hover{box-shadow:0 6px 28px rgba(0,230,118,0.45)}
+.fn{background:rgba(255,171,64,0.1);color:#ffab40}
+.fn:hover{background:rgba(255,171,64,0.2)}
+.clr{background:rgba(255,82,82,0.12);color:#ff5252}
+.clr:hover{background:rgba(255,82,82,0.22)}
+.wide{grid-column:span 2}
+
+.footer{text-align:center;margin-top:20px;font-size:0.7rem;color:#3a5c4a;letter-spacing:1px;position:relative;z-index:1}
+</style>
+</head>
+<body>
+
+<div>
+<div class="brand">
+<h1><span>MR. Goyal</span> Tools</h1>
+<p>Calculator</p>
+</div>
+
+<div class="calc">
+<div class="display">
+<div class="expr" id="expr"></div>
+<div class="val" id="val">0</div>
+</div>
+<div class="grid">
+<button class="btn clr" onclick="clr()">C</button>
+<button class="btn fn" onclick="bksp()"><i class="fas fa-delete-left"></i></button>
+<button class="btn fn" onclick="inp('%')">%</button>
+<button class="btn op" onclick="inp('/')"><i class="fas fa-divide"></i></button>
+
+<button class="btn num" onclick="inp('7')">7</button>
+<button class="btn num" onclick="inp('8')">8</button>
+<button class="btn num" onclick="inp('9')">9</button>
+<button class="btn op" onclick="inp('*')"><i class="fas fa-xmark"></i></button>
+
+<button class="btn num" onclick="inp('4')">4</button>
+<button class="btn num" onclick="inp('5')">5</button>
+<button class="btn num" onclick="inp('6')">6</button>
+<button class="btn op" onclick="inp('-')"><i class="fas fa-minus"></i></button>
+
+<button class="btn num" onclick="inp('1')">1</button>
+<button class="btn num" onclick="inp('2')">2</button>
+<button class="btn num" onclick="inp('3')">3</button>
+<button class="btn op" onclick="inp('+')"><i class="fas fa-plus"></i></button>
+
+<button class="btn num wide" onclick="inp('0')">0</button>
+<button class="btn num" onclick="inp('.')">.</button>
+<button class="btn eq" onclick="calc()">=</button>
+</div>
+</div>
+
+<div class="footer">MR. Goyal Tools &copy; 2025</div>
+</div>
+
+<script>
+let expression='', justCalculated=false;
+const exprEl=document.getElementById('expr'), valEl=document.getElementById('val');
+
+function inp(v){
+if(justCalculated && '0123456789'.includes(v)){expression='';justCalculated=false;}
+if(justCalculated && !'0123456789.'.includes(v)){justCalculated=false;}
+if(v==='.' && expression.slice(-1)==='.') return;
+if('+-*/%'.includes(v) && '+-*/%'.includes(expression.slice(-1))){
+expression=expression.slice(0,-1)+v; update(); return;}
+expression+=v; update();
+}
+
+function clr(){expression='';exprEl.textContent='';valEl.textContent='0';valEl.classList.remove('small');justCalculated=false;}
+
+function bksp(){expression=expression.slice(0,-1);update();}
+
+function calc(){
+if(!expression)return;
+try{
+let safe=expression.replace(/%/g,'*0.01');
+let result=Function('"use strict";return ('+safe+')')();
+if(!isFinite(result)){valEl.textContent='Error';exprEl.textContent=expression;expression='';justCalculated=true;return;}
+let r=Math.round(result*1e12)/1e12;
+exprEl.textContent=expression+' =';
+expression=String(r);
+valEl.textContent=r;
+valEl.classList.toggle('small',String(r).length>10);
+justCalculated=true;
+}catch(e){valEl.textContent='Error';exprEl.textContent=expression;expression='';justCalculated=true;}
+}
+
+function update(){
+valEl.textContent=expression||'0';
+exprEl.textContent='';
+valEl.classList.toggle('small',(expression||'0').length>10);
+}
+
+document.addEventListener('keydown',e=>{
+if('0123456789.+-*/%'.includes(e.key))inp(e.key);
+else if(e.key==='Enter'||e.key==='=')calc();
+else if(e.key==='Escape')clr();
+else if(e.key==='Backspace')bksp();
+});
+</script>
+</body>
+</html>
